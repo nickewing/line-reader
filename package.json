@@ -1,0 +1,9 @@
+{
+	"name":        "line-reader",
+	"version":     "0.1.0",
+	"description": "Asynchronous line-by-line file reader",
+  "keywords":    ["file", "line", "reader", "scanner"],
+  "author":      "Nick Ewing <nick@nickewing.net>",
+	"engines":     {"node": "0.4.x"},
+	"main":        "index"
+}
