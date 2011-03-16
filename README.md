@@ -27,4 +27,4 @@ Usage
 			}
 		});
 
-Copyright 2011 Nick Ewing
+Copyright 2011 Nick Ewing.
