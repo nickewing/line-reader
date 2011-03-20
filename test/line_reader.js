@@ -1,4 +1,4 @@
-var lineReader         = require('../index'),
+var lineReader         = require('../lib/line_reader'),
     assert             = require('assert'),
     fs                 = require('fs'),
     testFilePath       = __dirname + '/test_file.txt',
@@ -6,6 +6,7 @@ var lineReader         = require('../index'),
     emptyFilePath      = __dirname + '/empty_file.txt',
     i                  = 0,
     j                  = 0,
+    k                  = 0,
     testSeparatorFile  = ['foo', 'bar\n', 'baz\n'],
     testFile = [
       'Jabberwocky',
@@ -16,20 +17,41 @@ var lineReader         = require('../index'),
       ''
     ];
 
-lineReader.eachLine(testFilePath, function(line) {
+lineReader.eachLine(testFilePath, function(line, last) {
   assert.equal(testFile[i], line, 'Each line should be what we expect');
   i++;
+
+  if (i == 6) {
+    assert.ok(last);
+  } else {
+    assert.ok(!last);
+  }
 });
 
-lineReader.eachLine(separatorFilePath, function(line) {
+lineReader.eachLine(separatorFilePath, function(line, last) {
   // console.log('"' + line + '"');
   assert.equal(testSeparatorFile[j], line);
   j++;
+
+  if (j == 3) {
+    assert.ok(last);
+  } else {
+    assert.ok(!last);
+  }
 }, ';');
+
+lineReader.eachLine(testFilePath, function(line, last) {
+  assert.equal(testFile[k], line, 'Each line should be what we expect');
+  k++;
+
+  if (k == 2)
+    return false;
+});
 
 process.on('exit', function() {
   assert.equal(i, 6, 'Should read 6 lines from test file');
   assert.equal(j, 3, 'Should read 3 lines from separator test file');
+  assert.equal(k, 2, 'Should read 2 lines from test file when false is returned');
 });
 
 lineReader.eachLine(emptyFilePath, function(line) {
