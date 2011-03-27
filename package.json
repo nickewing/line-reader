@@ -1,15 +1,15 @@
 {
-	"name":        "line-reader",
-	"version":     "0.1.3",
-	"description": "Asynchronous line-by-line file reader",
-	"url":         "https://github.com/nickewing/line-reader",
+  "name":        "line-reader",
+  "version":     "0.1.5",
+  "description": "Asynchronous line-by-line file reader",
+  "url":         "https://github.com/nickewing/line-reader",
   "keywords":    ["file", "line", "reader", "scanner"],
   "author":      "Nick Ewing <nick@nickewing.net>",
-	"engines":     {"node": "0.4.x"},
+  "engines":     {"node": "0.4.x"},
   "directories": {"lib" : "./lib"},
   "main":        "./lib/line_reader",
-	"repository": {
-		"type": "git",
-		"url": "https://nickewing@github.com/nickewing/line-reader.git"
-	}
+  "repository": {
+    "type": "git",
+    "url": "https://nickewing@github.com/nickewing/line-reader.git"
+  }
 }
