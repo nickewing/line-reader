@@ -4,6 +4,7 @@ var lineReader         = require('../lib/line_reader'),
     testFilePath       = __dirname + '/test_file.txt',
     separatorFilePath  = __dirname + '/test_separator_file.txt',
     emptyFilePath      = __dirname + '/empty_file.txt',
+    multibyteFilePath  = __dirname + '/test_multibyte_file.txt',
     i                  = 0,
     j                  = 0,
     k                  = 0,
@@ -93,5 +94,13 @@ lineReader.open(testFilePath, function(reader) {
     });
   });
 });
+
+lineReader.open(multibyteFilePath, function(reader) {
+  assert.ok(reader.hasNextLine());
+  reader.nextLine(function(line) {
+    assert.equal('ふうりうの初やおくの田植うた', line,
+                 "Should read multibyte characters on buffer boundary");
+  });
+}, '\n', 'utf8', 2);
 
 console.log('OK');
