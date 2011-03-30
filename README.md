@@ -52,5 +52,10 @@ to iterate a file:
       }
     });
 
+Contributors
+------------
+
+Nick Ewing
+Jameson Little
 
 Copyright 2011 Nick Ewing.
