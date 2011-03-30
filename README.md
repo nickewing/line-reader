@@ -55,7 +55,7 @@ to iterate a file:
 Contributors
 ------------
 
-Nick Ewing
-Jameson Little
+* Nick Ewing
+* Jameson Little (beatgammit)
 
 Copyright 2011 Nick Ewing.
