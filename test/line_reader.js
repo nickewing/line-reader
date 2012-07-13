@@ -1,109 +1,131 @@
-(function () {
-  "use strict";
+var lineReader        = require('../lib/line_reader'),
+    assert            = require('assert'),
+    testFilePath      = __dirname + '/test_file.txt',
+    separatorFilePath = __dirname + '/test_separator_file.txt',
+    multibyteFilePath = __dirname + '/test_multibyte_file.txt',
+    emptyFilePath     = __dirname + '/empty_file.txt',
+    testSeparatorFile = ['foo', 'bar\n', 'baz\n'],
+    testFile = [
+      'Jabberwocky',
+      '',
+      '’Twas brillig, and the slithy toves',
+      'Did gyre and gimble in the wabe;',
+      '',
+      ''
+    ];
 
-  var lineReader        = require('../lib/line_reader'),
-      assert            = require('assert'),
-      testFilePath      = __dirname + '/test_file.txt',
-      separatorFilePath = __dirname + '/test_separator_file.txt',
-      multibyteFilePath = __dirname + '/test_multibyte_file.txt',
-      emptyFilePath     = __dirname + '/empty_file.txt',
-      i                 = 0,
-      j                 = 0,
-      k                 = 0,
-      testSeparatorFile = ['foo', 'bar\n', 'baz\n'],
-      testFile = [
-        'Jabberwocky',
-        '',
-        '’Twas brillig, and the slithy toves',
-        'Did gyre and gimble in the wabe;',
-        '',
-        ''
-      ];
-  
-  lineReader.eachLine(testFilePath, function (line, last) {
-    assert.equal(testFile[i], line, 'Each line should be what we expect');
-    i += 1;
-  
-    if (i === 6) {
-      assert.ok(last);
-    } else {
-      assert.ok(!last);
-    }
-  });
-  
-  lineReader.eachLine(separatorFilePath, function (line, last) {
-    assert.equal(testSeparatorFile[j], line);
-    j += 1;
-  
-    if (j === 3) {
-      assert.ok(last);
-    } else {
-      assert.ok(!last);
-    }
-  }, ';');
-  
-  lineReader.eachLine(testFilePath, function (line, last) {
-    assert.equal(testFile[k], line, 'Each line should be what we expect');
-    k += 1;
+describe("lineReader", function() {
+  describe("eachLine", function() {
+    it("should read lines using the defalut separator", function(done) {
+      var i = 0;
 
-    if (k === 2) {
-      return false;
-    }
-  });
-  
-  process.on('exit', function () {
-    assert.equal(i, 6, 'Should read 6 lines from test file');
-    assert.equal(j, 3, 'Should read 3 lines from separator test file');
-    assert.equal(k, 2, 'Should read 2 lines from test file when false is returned');
+      lineReader.eachLine(testFilePath, function (line, last) {
+        assert.equal(testFile[i], line, 'Each line should be what we expect');
+        i += 1;
 
-    console.log('OK');
+        if (i === 6) {
+          assert.ok(last);
+        } else {
+          assert.ok(!last);
+        }
+      }).then(function() {
+        assert.equal(6, i);
+        done();
+      });
+    });
+
+    it("should separate files using given separator", function(done) {
+      var i = 0;
+      lineReader.eachLine(separatorFilePath, function (line, last) {
+        assert.equal(testSeparatorFile[i], line);
+        i += 1;
+      
+        if (i === 3) {
+          assert.ok(last);
+        } else {
+          assert.ok(!last);
+        }
+      }, ';').then(function() {
+        assert.equal(3, i);
+        done();
+      });
+    });
+
+    it("should allow early termination of line reading", function(done) {
+      var i = 0;
+      lineReader.eachLine(testFilePath, function (line, last) {
+        assert.equal(testFile[i], line, 'Each line should be what we expect');
+        i += 1;
+
+        if (i === 2) {
+          return false;
+        }
+      }).then(function() {
+        assert.equal(2, i);
+        done();
+      });
+    });
+
+    it("should not call callback on empty file", function(done) {
+      lineReader.eachLine(emptyFilePath, function (line) {
+        assert.ok(false, "Empty file should not cause any callbacks");
+      }).then(function() {
+        done()
+      });
+    });
+
   });
-  
-  lineReader.eachLine(emptyFilePath, function (line) {
-    assert.ok(false, 'Empty file should not cause any callbacks');
-  });
-  
-  lineReader.open(testFilePath, function (reader) {
-    assert.ok(reader.hasNextLine());
-  
-    assert.ok(reader.hasNextLine(), 'Calling hasNextLine multiple times should be ok');
-  
-    reader.nextLine(function (line) {
-      assert.equal('Jabberwocky', line);
-      assert.ok(reader.hasNextLine());
-      reader.nextLine(function (line) {
-        assert.equal('', line);
+
+  describe("open", function() {
+    it("should return a reader object and allow calls to nextLine", function(done) {
+      lineReader.open(testFilePath, function (reader) {
         assert.ok(reader.hasNextLine());
+      
+        assert.ok(reader.hasNextLine(), 'Calling hasNextLine multiple times should be ok');
+      
         reader.nextLine(function (line) {
-          assert.equal('’Twas brillig, and the slithy toves', line);
+          assert.equal('Jabberwocky', line);
           assert.ok(reader.hasNextLine());
           reader.nextLine(function (line) {
-            assert.equal('Did gyre and gimble in the wabe;', line);
+            assert.equal('', line);
             assert.ok(reader.hasNextLine());
             reader.nextLine(function (line) {
-              assert.equal('', line);
+              assert.equal('’Twas brillig, and the slithy toves', line);
               assert.ok(reader.hasNextLine());
               reader.nextLine(function (line) {
-                assert.equal('', line);
-                assert.ok(!reader.hasNextLine());
-  
-                assert.throws(function () {
-                  reader.nextLine(function () {});
-                }, Error, "Should be able to read next line at EOF");
+                assert.equal('Did gyre and gimble in the wabe;', line);
+                assert.ok(reader.hasNextLine());
+                reader.nextLine(function (line) {
+                  assert.equal('', line);
+                  assert.ok(reader.hasNextLine());
+                  reader.nextLine(function (line) {
+                    assert.equal('', line);
+                    assert.ok(!reader.hasNextLine());
+      
+                    assert.throws(function () {
+                      reader.nextLine(function () {
+                      });
+                    }, Error, "Should be able to read next line at EOF");
+
+                    done();
+                  });
+                });
               });
             });
           });
         });
       });
     });
-  });
 
-  lineReader.open(multibyteFilePath, function(reader) {
-    assert.ok(reader.hasNextLine());
-    reader.nextLine(function(line) {
-      assert.equal('ふうりうの初やおくの田植うた', line,
-                   "Should read multibyte characters on buffer boundary");
+    it("should read multibyte characters on the buffer boundary", function(done) {
+      lineReader.open(multibyteFilePath, function(reader) {
+        assert.ok(reader.hasNextLine());
+        reader.nextLine(function(line) {
+          assert.equal('ふうりうの初やおくの田植うた', line,
+                       "Should read multibyte characters on buffer boundary");
+          done();
+        });
+      }, '\n', 'utf8', 2);
     });
-  }, '\n', 'utf8', 2);
-  
-}());
+  });
+});
