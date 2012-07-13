@@ -34,6 +34,26 @@ describe("lineReader", function() {
       });
     });
 
+    it("should allow continuation of line reading via a callback", function(done) {
+      var i = 0;
+
+      lineReader.eachLine(testFilePath, function (line, last, cb) {
+        assert.equal(testFile[i], line, 'Each line should be what we expect');
+        i += 1;
+
+        if (i === 6) {
+          assert.ok(last);
+        } else {
+          assert.ok(!last);
+        }
+
+        process.nextTick(cb);
+      }).then(function() {
+        assert.equal(6, i);
+        done();
+      });
+    });
+
     it("should separate files using given separator", function(done) {
       var i = 0;
       lineReader.eachLine(separatorFilePath, function (line, last) {
@@ -60,6 +80,24 @@ describe("lineReader", function() {
         if (i === 2) {
           return false;
         }
+      }).then(function() {
+        assert.equal(2, i);
+        done();
+      });
+    });
+
+    it("should allow early termination of line reading via a callback", function(done) {
+      var i = 0;
+      lineReader.eachLine(testFilePath, function (line, last, cb) {
+        assert.equal(testFile[i], line, 'Each line should be what we expect');
+        i += 1;
+
+        if (i === 2) {
+          cb(false);
+        } else {
+          cb();
+        }
+
       }).then(function() {
         assert.equal(2, i);
         done();
