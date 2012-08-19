@@ -1,9 +1,10 @@
 var lineReader        = require('../lib/line_reader'),
     assert            = require('assert'),
-    testFilePath      = __dirname + '/test_file.txt',
-    separatorFilePath = __dirname + '/test_separator_file.txt',
-    multibyteFilePath = __dirname + '/test_multibyte_file.txt',
-    emptyFilePath     = __dirname + '/empty_file.txt',
+    testFilePath      = __dirname + '/data/normal_file.txt',
+    separatorFilePath = __dirname + '/data/separator_file.txt',
+    multibyteFilePath = __dirname + '/data/multibyte_file.txt',
+    emptyFilePath     = __dirname + '/data/empty_file.txt',
+    oneLineFilePath   = __dirname + '/data/one_line_file.txt',
     testSeparatorFile = ['foo', 'bar\n', 'baz\n'],
     testFile = [
       'Jabberwocky',
@@ -19,7 +20,7 @@ describe("lineReader", function() {
     it("should read lines using the defalut separator", function(done) {
       var i = 0;
 
-      lineReader.eachLine(testFilePath, function (line, last) {
+      lineReader.eachLine(testFilePath, function(line, last) {
         assert.equal(testFile[i], line, 'Each line should be what we expect');
         i += 1;
 
@@ -37,7 +38,7 @@ describe("lineReader", function() {
     it("should allow continuation of line reading via a callback", function(done) {
       var i = 0;
 
-      lineReader.eachLine(testFilePath, function (line, last, cb) {
+      lineReader.eachLine(testFilePath, function(line, last, cb) {
         assert.equal(testFile[i], line, 'Each line should be what we expect');
         i += 1;
 
@@ -56,7 +57,7 @@ describe("lineReader", function() {
 
     it("should separate files using given separator", function(done) {
       var i = 0;
-      lineReader.eachLine(separatorFilePath, function (line, last) {
+      lineReader.eachLine(separatorFilePath, function(line, last) {
         assert.equal(testSeparatorFile[i], line);
         i += 1;
       
@@ -73,7 +74,7 @@ describe("lineReader", function() {
 
     it("should allow early termination of line reading", function(done) {
       var i = 0;
-      lineReader.eachLine(testFilePath, function (line, last) {
+      lineReader.eachLine(testFilePath, function(line, last) {
         assert.equal(testFile[i], line, 'Each line should be what we expect');
         i += 1;
 
@@ -88,7 +89,7 @@ describe("lineReader", function() {
 
     it("should allow early termination of line reading via a callback", function(done) {
       var i = 0;
-      lineReader.eachLine(testFilePath, function (line, last, cb) {
+      lineReader.eachLine(testFilePath, function(line, last, cb) {
         assert.equal(testFile[i], line, 'Each line should be what we expect');
         i += 1;
 
@@ -105,10 +106,17 @@ describe("lineReader", function() {
     });
 
     it("should not call callback on empty file", function(done) {
-      lineReader.eachLine(emptyFilePath, function (line) {
+      lineReader.eachLine(emptyFilePath, function(line) {
         assert.ok(false, "Empty file should not cause any callbacks");
       }).then(function() {
         done()
+      });
+    });
+
+    it("should work with a file containing only one line", function(done) {
+      lineReader.eachLine(oneLineFilePath, function(line, last) {
+        done();
+        return false;
       });
     });
 
@@ -116,32 +124,32 @@ describe("lineReader", function() {
 
   describe("open", function() {
     it("should return a reader object and allow calls to nextLine", function(done) {
-      lineReader.open(testFilePath, function (reader) {
+      lineReader.open(testFilePath, function(reader) {
         assert.ok(reader.hasNextLine());
       
         assert.ok(reader.hasNextLine(), 'Calling hasNextLine multiple times should be ok');
       
-        reader.nextLine(function (line) {
+        reader.nextLine(function(line) {
           assert.equal('Jabberwocky', line);
           assert.ok(reader.hasNextLine());
-          reader.nextLine(function (line) {
+          reader.nextLine(function(line) {
             assert.equal('', line);
             assert.ok(reader.hasNextLine());
-            reader.nextLine(function (line) {
+            reader.nextLine(function(line) {
               assert.equal('’Twas brillig, and the slithy toves', line);
               assert.ok(reader.hasNextLine());
-              reader.nextLine(function (line) {
+              reader.nextLine(function(line) {
                 assert.equal('Did gyre and gimble in the wabe;', line);
                 assert.ok(reader.hasNextLine());
-                reader.nextLine(function (line) {
+                reader.nextLine(function(line) {
                   assert.equal('', line);
                   assert.ok(reader.hasNextLine());
-                  reader.nextLine(function (line) {
+                  reader.nextLine(function(line) {
                     assert.equal('', line);
                     assert.ok(!reader.hasNextLine());
       
-                    assert.throws(function () {
-                      reader.nextLine(function () {
+                    assert.throws(function() {
+                      reader.nextLine(function() {
                       });
                     }, Error, "Should be able to read next line at EOF");
 
@@ -152,6 +160,12 @@ describe("lineReader", function() {
             });
           });
         });
+      });
+    });
+
+    it("should work with a file containing only one line", function(done) {
+      lineReader.open(oneLineFilePath, function(reader) {
+        done();
       });
     });
 

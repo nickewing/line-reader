@@ -1,6 +1,6 @@
 {
   "name":        "line-reader",
-  "version":     "0.2.1",
+  "version":     "0.2.2",
   "description": "Asynchronous line-by-line file reader",
   "url":         "https://github.com/nickewing/line-reader",
   "keywords":    ["file", "line", "reader", "scanner"],
