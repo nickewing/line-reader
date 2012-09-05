@@ -5,6 +5,7 @@ var lineReader        = require('../lib/line_reader'),
     multibyteFilePath = __dirname + '/data/multibyte_file.txt',
     emptyFilePath     = __dirname + '/data/empty_file.txt',
     oneLineFilePath   = __dirname + '/data/one_line_file.txt',
+    threeLineFilePath = __dirname + '/data/three_line_file.txt',
     testSeparatorFile = ['foo', 'bar\n', 'baz\n'],
     testFile = [
       'Jabberwocky',
@@ -178,6 +179,26 @@ describe("lineReader", function() {
           done();
         });
       }, '\n', 'utf8', 2);
+    });
+
+    describe("hasNextLine", function() {
+      it("should return true when buffer is empty but not at EOF", function(done) {
+        lineReader.open(threeLineFilePath, function(reader) {
+          reader.nextLine(function(line) {
+            assert.equal("This is line one.", line);
+            assert.ok(reader.hasNextLine());
+            reader.nextLine(function(line) {
+              assert.equal("This is line two.", line);
+              assert.ok(reader.hasNextLine());
+              reader.nextLine(function(line) {
+                assert.equal("This is line three.", line);
+                assert.ok(!reader.hasNextLine());
+                done();
+              });
+            });
+          });
+        }, '\n', 'utf-8', 36);
+      });
     });
   });
 });
