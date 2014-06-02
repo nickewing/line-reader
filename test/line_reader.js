@@ -1,12 +1,13 @@
-var lineReader        = require('../lib/line_reader'),
-    assert            = require('assert'),
-    testFilePath      = __dirname + '/data/normal_file.txt',
-    separatorFilePath = __dirname + '/data/separator_file.txt',
-    multibyteFilePath = __dirname + '/data/multibyte_file.txt',
-    emptyFilePath     = __dirname + '/data/empty_file.txt',
-    oneLineFilePath   = __dirname + '/data/one_line_file.txt',
-    threeLineFilePath = __dirname + '/data/three_line_file.txt',
-    testSeparatorFile = ['foo', 'bar\n', 'baz\n'],
+var lineReader             = require('../lib/line_reader'),
+    assert                 = require('assert'),
+    testFilePath           = __dirname + '/data/normal_file.txt',
+    separatorFilePath      = __dirname + '/data/separator_file.txt',
+    multiSeparatorFilePath = __dirname + '/data/multi_separator_file.txt',
+    multibyteFilePath      = __dirname + '/data/multibyte_file.txt',
+    emptyFilePath          = __dirname + '/data/empty_file.txt',
+    oneLineFilePath        = __dirname + '/data/one_line_file.txt',
+    threeLineFilePath      = __dirname + '/data/three_line_file.txt',
+    testSeparatorFile      = ['foo', 'bar\n', 'baz\n'],
     testFile = [
       'Jabberwocky',
       '',
@@ -68,6 +69,23 @@ describe("lineReader", function() {
           assert.ok(!last);
         }
       }, ';').then(function() {
+        assert.equal(3, i);
+        done();
+      });
+    });
+
+    it("should separate files using given separator with more than one character", function(done) {
+      var i = 0;
+      lineReader.eachLine(multiSeparatorFilePath, function(line, last) {
+        assert.equal(testSeparatorFile[i], line);
+        i += 1;
+      
+        if (i === 3) {
+          assert.ok(last);
+        } else {
+          assert.ok(!last);
+        }
+      }, '||').then(function() {
         assert.equal(3, i);
         done();
       });
