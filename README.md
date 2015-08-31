@@ -55,6 +55,20 @@ by returning `false` from the iteratee):
       console.log("I'm done!!");
     });
 
+If you want to use promises, `eachLine` and `open` are compatible with `promisify`
+from [bluebird](https://github.com/petkaantonov/bluebird/blob/master/API.md#promisepromisifyfunction-nodefunction--dynamic-receiver---function):
+
+    var lineReader = require('line-reader'),
+        Promise = require('bluebird');
+
+    var eachLine = Promise.promisify(lineReader.eachLine);
+    eachLine('file.txt', function(line) {
+      console.log(line);
+    }).then(function() {
+      console.log('done');
+    }).catch(function(err) {
+      console.error(err);
+    });
 
 For more granular control, `open`, `hasNextLine`, and `nextLine` maybe be used
 to iterate a file (but you must `close` it yourself):
