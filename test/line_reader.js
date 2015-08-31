@@ -224,6 +224,19 @@ describe("lineReader", function() {
       });
     });
 
+    it("should error when the user tries calls nextLine on a closed LineReader", function(done) {
+      lineReader.open(oneLineFilePath, function(err, reader) {
+        assert.ok(!err);
+        reader.close(function(err) {
+          assert.ok(!err);
+          reader.nextLine(function(err, line) {
+            assert.ok(err, "nextLine should have errored because the reader is closed");
+            done();
+          });
+        });
+      });
+    });
+
     it("should work with a file containing only one line", function(done) {
       lineReader.eachLine(oneLineFilePath, function(line, last) {
         return true;
@@ -233,6 +246,15 @@ describe("lineReader", function() {
       });
     });
 
+    it("should close the file when eachLine finishes", function(done) {
+      lineReader.eachLine(oneLineFilePath, function(line, last) {
+        return false;
+      }, function(err, reader) {
+        assert.ok(!err);
+        assert.ok(reader.isClosed());
+        done();
+      });
+    });
   });
 
   describe("open", function() {
