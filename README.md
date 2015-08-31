@@ -41,15 +41,17 @@ callback parameter like so:
       }
     });
 
-The `eachLine` function also returns an object with one property, `then`.  If a
-callback is provided to `then`, it will be called once all lines have been read.
+You can provide an optional second node-style callback that will be called with
+`(err)` on failure or `()` when finished (even if you manually terminate iteration
+by returning `false` from the iteratee):
 
     var lineReader = require('line-reader');
 
     // read all lines:
     lineReader.eachLine('file.txt', function(line) {
       console.log(line);
-    }).then(function () {
+    }).then(function (err) {
+      if (err) throw err;
       console.log("I'm done!!");
     });
 
@@ -58,13 +60,20 @@ For more granular control, `open`, `hasNextLine`, and `nextLine` maybe be used
 to iterate a file:
 
     // or read line by line:
-    lineReader.open('file.txt', function(reader) {
+    lineReader.open('file.txt', function(err, reader) {
+      if (err) throw err;
       if (reader.hasNextLine()) {
-        reader.nextLine(function(line) {
+        reader.nextLine(function(err, line) {
+          if (err) throw err;
           console.log(line);
         });
       }
     });
+
+You may provide additional options before the callbacks:
+* separator   - a string or RegExp separator (defaults to `/\r\n?|\n/`)
+* encoding    - file encoding (defaults to `'utf8'`)
+* bufferSize  - amount of bytes to buffer (defaults to 1024)
 
 Contributors
 ------------
