@@ -1,13 +1,17 @@
-var lineReader             = require('../lib/line_reader'),
-    assert                 = require('assert'),
-    testFilePath           = __dirname + '/data/normal_file.txt',
-    separatorFilePath      = __dirname + '/data/separator_file.txt',
-    multiSeparatorFilePath = __dirname + '/data/multi_separator_file.txt',
-    multibyteFilePath      = __dirname + '/data/multibyte_file.txt',
-    emptyFilePath          = __dirname + '/data/empty_file.txt',
-    oneLineFilePath        = __dirname + '/data/one_line_file.txt',
-    threeLineFilePath      = __dirname + '/data/three_line_file.txt',
-    testSeparatorFile      = ['foo', 'bar\n', 'baz\n'],
+var lineReader                    = require('../lib/line_reader'),
+    assert                        = require('assert'),
+    testFilePath                  = __dirname + '/data/normal_file.txt',
+    windowsFilePath               = __dirname + '/data/windows_file.txt',
+    windowsBufferOverlapFilePath  = __dirname + '/data/windows_buffer_overlap_file.txt',
+    unixFilePath                  = __dirname + '/data/unix_file.txt',
+    macOs9FilePath                = __dirname + '/data/mac_os_9_file.txt',
+    separatorFilePath             = __dirname + '/data/separator_file.txt',
+    multiSeparatorFilePath        = __dirname + '/data/multi_separator_file.txt',
+    multibyteFilePath             = __dirname + '/data/multibyte_file.txt',
+    emptyFilePath                 = __dirname + '/data/empty_file.txt',
+    oneLineFilePath               = __dirname + '/data/one_line_file.txt',
+    threeLineFilePath             = __dirname + '/data/three_line_file.txt',
+    testSeparatorFile             = ['foo', 'bar\n', 'baz\n'],
     testFile = [
       'Jabberwocky',
       '',
@@ -15,6 +19,10 @@ var lineReader             = require('../lib/line_reader'),
       'Did gyre and gimble in the wabe;',
       '',
       ''
+    ],
+    testBufferOverlapFile = [
+      'test',
+      'file'
     ];
 
 describe("lineReader", function() {
@@ -23,6 +31,79 @@ describe("lineReader", function() {
       var i = 0;
 
       lineReader.eachLine(testFilePath, function(line, last) {
+        assert.equal(testFile[i], line, 'Each line should be what we expect');
+        i += 1;
+
+        if (i === 6) {
+          assert.ok(last);
+        } else {
+          assert.ok(!last);
+        }
+      }).then(function() {
+        assert.equal(6, i);
+        done();
+      });
+    });
+
+    it("should read windows files by default", function(done) {
+      var i = 0;
+
+      lineReader.eachLine(windowsFilePath, function(line, last) {
+        assert.equal(testFile[i], line, 'Each line should be what we expect');
+        i += 1;
+
+        if (i === 6) {
+          assert.ok(last);
+        } else {
+          assert.ok(!last);
+        }
+      }).then(function() {
+        assert.equal(6, i);
+        done();
+      });
+    });
+
+    it("should handle \\r\\n overlapping buffer window correctly", function(done) {
+      var i = 0;
+      var bufferSize = 5;
+
+      lineReader.eachLine(windowsBufferOverlapFilePath, function(line, last) {
+        assert.equal(testBufferOverlapFile[i], line, 'Each line should be what we expect');
+        i += 1;
+
+        if (i === 2) {
+          assert.ok(last);
+        } else {
+          assert.ok(!last);
+        }
+      }, undefined, undefined, bufferSize).then(function() {
+        assert.equal(2, i);
+        done();
+      });
+    });
+
+    it("should read unix files by default", function(done) {
+      var i = 0;
+
+      lineReader.eachLine(unixFilePath, function(line, last) {
+        assert.equal(testFile[i], line, 'Each line should be what we expect');
+        i += 1;
+
+        if (i === 6) {
+          assert.ok(last);
+        } else {
+          assert.ok(!last);
+        }
+      }).then(function() {
+        assert.equal(6, i);
+        done();
+      });
+    });
+
+    it("should read mac os 9 files by default", function(done) {
+      var i = 0;
+
+      lineReader.eachLine(macOs9FilePath, function(line, last) {
         assert.equal(testFile[i], line, 'Each line should be what we expect');
         i += 1;
 
