@@ -70,7 +70,11 @@ Contributors
 ------------
 
 * Nick Ewing
+* Andy Edwards (jedwards1211)
 * Jameson Little (beatgammit)
+* Masum (masumsoft)
+* Matthew Caruana Galizia (mattcg)
+* Ricardo Bin (ricardohbin)
 
 Paul Em has also written a reverse-version of this gem to read files from bottom to top: [reverse-line-reader](https://github.com/paul-em/reverse-line-reader).
 
