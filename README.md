@@ -71,9 +71,16 @@ to iterate a file:
     });
 
 You may provide additional options before the callbacks:
-* separator   - a string or RegExp separator (defaults to `/\r\n?|\n/`)
-* encoding    - file encoding (defaults to `'utf8'`)
-* bufferSize  - amount of bytes to buffer (defaults to 1024)
+* `separator`   - a `string` or `RegExp` separator (defaults to `/\r\n?|\n/`)
+* `encoding`    - file encoding (defaults to `'utf8'`)
+* `bufferSize`  - amount of bytes to buffer (defaults to 1024)
+
+For example:
+
+    lineReader.eachLine('file.txt', {separator: ';', encoding: 'utf8'}, function(line, last, cb) {
+      console.log(line);
+    });
+
 
 Contributors
 ------------
