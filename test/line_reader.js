@@ -1,5 +1,6 @@
 var lineReader                    = require('../lib/line_reader'),
     assert                        = require('assert'),
+    fs                            = require('fs'),
     testFilePath                  = __dirname + '/data/normal_file.txt',
     windowsFilePath               = __dirname + '/data/windows_file.txt',
     windowsBufferOverlapFilePath  = __dirname + '/data/windows_buffer_overlap_file.txt',
@@ -24,6 +25,19 @@ var lineReader                    = require('../lib/line_reader'),
       'test',
       'file'
     ];
+
+var readErrorFds = {};
+
+var realFsRead = fs.read;
+
+function fakeFsRead(fd, buffer, offset, length, position, callback) {
+  if (readErrorFds[fd]) {
+    callback(new Error('fake error for testing'));
+  }
+  return realFsRead(fd, buffer, offset, length, position, callback);
+};
+
+fs.read = fakeFsRead;
 
 describe("lineReader", function() {
   describe("eachLine", function() {
@@ -253,6 +267,20 @@ describe("lineReader", function() {
         assert.ok(!err);
         assert.ok(reader.isClosed());
         done();
+      });
+    });
+
+    it("should close the file if there is an error during eachLine", function(done) {
+      var reader;
+      lineReader.eachLine(testFilePath, {bufferSize: 10}, function(line, last) {
+      }, function(err, reader) {
+        delete readErrorFds[reader.fd()];
+        assert.ok(err);
+        assert.ok(reader.isClosed());
+        done();
+      }).getReader(function(_reader) {
+        reader = _reader;
+        readErrorFds[reader.fd()] = true;
       });
     });
   });
