@@ -261,19 +261,22 @@ describe("lineReader", function() {
     });
 
     it("should close the file when eachLine finishes", function(done) {
+      var reader;
       lineReader.eachLine(oneLineFilePath, function(line, last) {
         return false;
-      }, function(err, reader) {
+      }, function(err) {
         assert.ok(!err);
         assert.ok(reader.isClosed());
         done();
+      }).getReader(function(_reader) {
+        reader = _reader;
       });
     });
 
     it("should close the file if there is an error during eachLine", function(done) {
       var reader;
       lineReader.eachLine(testFilePath, {bufferSize: 10}, function(line, last) {
-      }, function(err, reader) {
+      }, function(err) {
         delete readErrorFds[reader.fd()];
         assert.ok(err);
         assert.ok(reader.isClosed());
