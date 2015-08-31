@@ -111,7 +111,7 @@ Promises
       console.error(err);
     });
 
-If you're using a promise library that doesn't have a promisify function, it's still easy:
+If you're using a promise library that doesn't have a promisify function, here's how you can do it:
 
     var lineReader = require('line-reader'),
         Promise = require(...);
