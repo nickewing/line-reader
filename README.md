@@ -55,21 +55,6 @@ by returning `false` from the iteratee):
       console.log("I'm done!!");
     });
 
-If you want to use promises, `eachLine` and `open` are compatible with `promisify`
-from [bluebird](https://github.com/petkaantonov/bluebird/blob/master/API.md#promisepromisifyfunction-nodefunction--dynamic-receiver---function):
-
-    var lineReader = require('line-reader'),
-        Promise = require('bluebird');
-
-    var eachLine = Promise.promisify(lineReader.eachLine);
-    eachLine('file.txt', function(line) {
-      console.log(line);
-    }).then(function() {
-      console.log('done');
-    }).catch(function(err) {
-      console.error(err);
-    });
-
 For more granular control, `open`, `hasNextLine`, and `nextLine` maybe be used
 to iterate a file (but you must `close` it yourself):
 
@@ -108,6 +93,47 @@ For example:
     lineReader.open('file.txt', {bufferSize: 1024}, function(err, reader) {
       ...
     }); 
+
+Promises
+--------
+
+`eachLine` and `open` are compatible with `promisify` from [bluebird](https://github.com/petkaantonov/bluebird/blob/master/API.md#promisepromisifyfunction-nodefunction--dynamic-receiver---function):
+
+    var lineReader = require('line-reader'),
+        Promise = require('bluebird');
+
+    var eachLine = Promise.promisify(lineReader.eachLine);
+    eachLine('file.txt', function(line) {
+      console.log(line);
+    }).then(function() {
+      console.log('done');
+    }).catch(function(err) {
+      console.error(err);
+    });
+
+If you're using a promise library that doesn't have a promisify function, it's still easy:
+
+    var lineReader = require('line-reader'),
+        Promise = require(...);
+
+    var eachLine = function(filename, options, iteratee) {
+      return new Promise(function(resolve, reject) {
+        lineReader.eachLine(filename, options, iteratee, function(err) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+    }
+    eachLine('file.txt', function(line) {
+      console.log(line);
+    }).then(function() {
+      console.log('done');
+    }).catch(function(err) {
+      console.error(err);
+    });
 
 Contributors
 ------------
