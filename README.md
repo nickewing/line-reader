@@ -57,20 +57,31 @@ by returning `false` from the iteratee):
 
 
 For more granular control, `open`, `hasNextLine`, and `nextLine` maybe be used
-to iterate a file:
+to iterate a file (but you must `close` it yourself):
 
     // or read line by line:
     lineReader.open('file.txt', function(err, reader) {
       if (err) throw err;
       if (reader.hasNextLine()) {
         reader.nextLine(function(err, line) {
-          if (err) throw err;
-          console.log(line);
+          try {
+            if (err) throw err;
+            console.log(line);
+          } finally {
+            reader.close(function(err) {
+              if (err) throw err;          
+            });
+          }
+        });
+      }
+      else {
+        reader.close(function(err) {
+          if (err) throw err;          
         });
       }
     });
 
-You may provide additional options before the callbacks:
+You may provide additional options in a hash before the callbacks to `eachLine` or `open`:
 * `separator`   - a `string` or `RegExp` separator (defaults to `/\r\n?|\n/`)
 * `encoding`    - file encoding (defaults to `'utf8'`)
 * `bufferSize`  - amount of bytes to buffer (defaults to 1024)
@@ -80,7 +91,9 @@ For example:
     lineReader.eachLine('file.txt', {separator: ';', encoding: 'utf8'}, function(line, last, cb) {
       console.log(line);
     });
-
+    lineReader.open('file.txt', {bufferSize: 1024}, function(err, reader) {
+      ...
+    }); 
 
 Contributors
 ------------
