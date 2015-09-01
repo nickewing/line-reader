@@ -1,5 +1,6 @@
 var lineReader                    = require('../lib/line_reader'),
     assert                        = require('assert'),
+    fs                            = require('fs'),
     testFilePath                  = __dirname + '/data/normal_file.txt',
     windowsFilePath               = __dirname + '/data/windows_file.txt',
     windowsBufferOverlapFilePath  = __dirname + '/data/windows_buffer_overlap_file.txt',
@@ -25,6 +26,19 @@ var lineReader                    = require('../lib/line_reader'),
       'file'
     ];
 
+var readErrorFds = {};
+
+var realFsRead = fs.read;
+
+function fakeFsRead(fd, buffer, offset, length, position, callback) {
+  if (readErrorFds[fd]) {
+    callback(new Error('fake error for testing'));
+  }
+  return realFsRead(fd, buffer, offset, length, position, callback);
+};
+
+fs.read = fakeFsRead;
+
 describe("lineReader", function() {
   describe("eachLine", function() {
     it("should read lines using the defalut separator", function(done) {
@@ -39,7 +53,8 @@ describe("lineReader", function() {
         } else {
           assert.ok(!last);
         }
-      }).then(function() {
+      }, function(err) {
+        assert.ok(!err);
         assert.equal(6, i);
         done();
       });
@@ -57,7 +72,8 @@ describe("lineReader", function() {
         } else {
           assert.ok(!last);
         }
-      }).then(function() {
+      }, function(err) {
+        assert.ok(!err);
         assert.equal(6, i);
         done();
       });
@@ -67,7 +83,7 @@ describe("lineReader", function() {
       var i = 0;
       var bufferSize = 5;
 
-      lineReader.eachLine(windowsBufferOverlapFilePath, function(line, last) {
+      lineReader.eachLine(windowsBufferOverlapFilePath, {bufferSize: bufferSize}, function(line, last) {
         assert.equal(testBufferOverlapFile[i], line, 'Each line should be what we expect');
         i += 1;
 
@@ -76,7 +92,8 @@ describe("lineReader", function() {
         } else {
           assert.ok(!last);
         }
-      }, undefined, undefined, bufferSize).then(function() {
+      }, function(err) {
+        assert.ok(!err);
         assert.equal(2, i);
         done();
       });
@@ -94,7 +111,8 @@ describe("lineReader", function() {
         } else {
           assert.ok(!last);
         }
-      }).then(function() {
+      }, function(err) {
+        assert.ok(!err);
         assert.equal(6, i);
         done();
       });
@@ -112,7 +130,8 @@ describe("lineReader", function() {
         } else {
           assert.ok(!last);
         }
-      }).then(function() {
+      }, function(err) {
+        assert.ok(!err);
         assert.equal(6, i);
         done();
       });
@@ -132,7 +151,8 @@ describe("lineReader", function() {
         }
 
         process.nextTick(cb);
-      }).then(function() {
+      }, function(err) {
+        assert.ok(!err);
         assert.equal(6, i);
         done();
       });
@@ -140,7 +160,7 @@ describe("lineReader", function() {
 
     it("should separate files using given separator", function(done) {
       var i = 0;
-      lineReader.eachLine(separatorFilePath, function(line, last) {
+      lineReader.eachLine(separatorFilePath, {separator: ';'}, function(line, last) {
         assert.equal(testSeparatorFile[i], line);
         i += 1;
       
@@ -149,7 +169,8 @@ describe("lineReader", function() {
         } else {
           assert.ok(!last);
         }
-      }, ';').then(function() {
+      }, function(err) {
+        assert.ok(!err);
         assert.equal(3, i);
         done();
       });
@@ -157,7 +178,7 @@ describe("lineReader", function() {
 
     it("should separate files using given separator with more than one character", function(done) {
       var i = 0;
-      lineReader.eachLine(multiSeparatorFilePath, function(line, last) {
+      lineReader.eachLine(multiSeparatorFilePath, {separator: '||'}, function(line, last) {
         assert.equal(testSeparatorFile[i], line);
         i += 1;
       
@@ -166,7 +187,8 @@ describe("lineReader", function() {
         } else {
           assert.ok(!last);
         }
-      }, '||').then(function() {
+      }, function(err) {
+        assert.ok(!err);
         assert.equal(3, i);
         done();
       });
@@ -181,7 +203,8 @@ describe("lineReader", function() {
         if (i === 2) {
           return false;
         }
-      }).then(function() {
+      }, function(err) {
+        assert.ok(!err);
         assert.equal(2, i);
         done();
       });
@@ -199,7 +222,8 @@ describe("lineReader", function() {
           cb();
         }
 
-      }).then(function() {
+      }, function(err) {
+        assert.ok(!err);
         assert.equal(2, i);
         done();
       });
@@ -208,52 +232,98 @@ describe("lineReader", function() {
     it("should not call callback on empty file", function(done) {
       lineReader.eachLine(emptyFilePath, function(line) {
         assert.ok(false, "Empty file should not cause any callbacks");
-      }).then(function() {
+      }, function(err) {
+        assert.ok(!err);
         done()
+      });
+    });
+
+    it("should error when the user tries calls nextLine on a closed LineReader", function(done) {
+      lineReader.open(oneLineFilePath, function(err, reader) {
+        assert.ok(!err);
+        reader.close(function(err) {
+          assert.ok(!err);
+          reader.nextLine(function(err, line) {
+            assert.ok(err, "nextLine should have errored because the reader is closed");
+            done();
+          });
+        });
       });
     });
 
     it("should work with a file containing only one line", function(done) {
       lineReader.eachLine(oneLineFilePath, function(line, last) {
+        return true;
+      }, function(err) {
+        assert.ok(!err);
         done();
-        return false;
       });
     });
 
+    it("should close the file when eachLine finishes", function(done) {
+      var reader;
+      lineReader.eachLine(oneLineFilePath, function(line, last) {
+        return false;
+      }, function(err) {
+        assert.ok(!err);
+        assert.ok(reader.isClosed());
+        done();
+      }).getReader(function(_reader) {
+        reader = _reader;
+      });
+    });
+
+    it("should close the file if there is an error during eachLine", function(done) {
+      var reader;
+      lineReader.eachLine(testFilePath, {bufferSize: 10}, function(line, last) {
+      }, function(err) {
+        delete readErrorFds[reader.fd()];
+        assert.ok(err);
+        assert.ok(reader.isClosed());
+        done();
+      }).getReader(function(_reader) {
+        reader = _reader;
+        readErrorFds[reader.fd()] = true;
+      });
+    });
   });
 
   describe("open", function() {
     it("should return a reader object and allow calls to nextLine", function(done) {
-      lineReader.open(testFilePath, function(reader) {
+      lineReader.open(testFilePath, function(err, reader) {
+        assert.ok(!err);
         assert.ok(reader.hasNextLine());
       
         assert.ok(reader.hasNextLine(), 'Calling hasNextLine multiple times should be ok');
       
-        reader.nextLine(function(line) {
+        reader.nextLine(function(err, line) {
+          assert.ok(!err);
           assert.equal('Jabberwocky', line);
           assert.ok(reader.hasNextLine());
-          reader.nextLine(function(line) {
+          reader.nextLine(function(err, line) {
+            assert.ok(!err);
             assert.equal('', line);
             assert.ok(reader.hasNextLine());
-            reader.nextLine(function(line) {
+            reader.nextLine(function(err, line) {
+              assert.ok(!err);
               assert.equal('’Twas brillig, and the slithy toves', line);
               assert.ok(reader.hasNextLine());
-              reader.nextLine(function(line) {
+              reader.nextLine(function(err, line) {
+                assert.ok(!err);
                 assert.equal('Did gyre and gimble in the wabe;', line);
                 assert.ok(reader.hasNextLine());
-                reader.nextLine(function(line) {
+                reader.nextLine(function(err, line) {
+                  assert.ok(!err);
                   assert.equal('', line);
                   assert.ok(reader.hasNextLine());
-                  reader.nextLine(function(line) {
+                  reader.nextLine(function(err, line) {
+                    assert.ok(!err);
                     assert.equal('', line);
                     assert.ok(!reader.hasNextLine());
-      
-                    assert.throws(function() {
-                      reader.nextLine(function() {
-                      });
-                    }, Error, "Should be able to read next line at EOF");
-
-                    done();
+                    reader.nextLine(function(err, line) {
+                      assert.ok(err);
+                      done();
+                    });
                   });
                 });
               });
@@ -264,39 +334,55 @@ describe("lineReader", function() {
     });
 
     it("should work with a file containing only one line", function(done) {
-      lineReader.open(oneLineFilePath, function(reader) {
-        done();
+      lineReader.open(oneLineFilePath, function(err, reader) {
+        assert.ok(!err);
+        reader.close(function(err) {
+          assert.ok(!err);
+          done();
+        });
       });
     });
 
     it("should read multibyte characters on the buffer boundary", function(done) {
-      lineReader.open(multibyteFilePath, function(reader) {
+      lineReader.open(multibyteFilePath, {separator: '\n', encoding: 'utf8', bufferSize: 2}, function(err, reader) {
+        assert.ok(!err);
         assert.ok(reader.hasNextLine());
-        reader.nextLine(function(line) {
+        reader.nextLine(function(err, line) {
+          assert.ok(!err);
           assert.equal('ふうりうの初やおくの田植うた', line,
                        "Should read multibyte characters on buffer boundary");
-          done();
+          reader.close(function(err) {
+            assert.ok(!err);
+            done();
+          });
         });
-      }, '\n', 'utf8', 2);
+      });
     });
 
     describe("hasNextLine", function() {
       it("should return true when buffer is empty but not at EOF", function(done) {
-        lineReader.open(threeLineFilePath, function(reader) {
-          reader.nextLine(function(line) {
+        lineReader.open(threeLineFilePath, {separator: '\n', encoding: 'utf8', bufferSize: 36}, function(err, reader) {
+          assert.ok(!err);
+          reader.nextLine(function(err, line) {
+            assert.ok(!err);
             assert.equal("This is line one.", line);
             assert.ok(reader.hasNextLine());
-            reader.nextLine(function(line) {
+            reader.nextLine(function(err, line) {
+              assert.ok(!err);
               assert.equal("This is line two.", line);
               assert.ok(reader.hasNextLine());
-              reader.nextLine(function(line) {
+              reader.nextLine(function(err, line) {
+                assert.ok(!err);
                 assert.equal("This is line three.", line);
                 assert.ok(!reader.hasNextLine());
-                done();
+                reader.close(function(err) {
+                  assert.ok(!err);
+                  done();
+                })
               });
             });
           });
-        }, '\n', 'utf-8', 36);
+        });
       });
     });
   });
