@@ -5,6 +5,7 @@
   "url":         "https://github.com/nickewing/line-reader",
   "keywords":    ["file", "line", "reader", "scanner"],
   "author":      "Nick Ewing <nick@nickewing.net>",
+  "license":     "MIT",
   "directories": {"lib" : "./lib"},
   "main":        "./lib/line_reader",
   "repository": {
