@@ -1,6 +1,6 @@
 {
   "name": "line-reader",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Asynchronous line-by-line file reader",
   "url": "https://github.com/nickewing/line-reader",
   "keywords": [
@@ -10,6 +10,10 @@
     "scanner"
   ],
   "author": "Nick Ewing <nick@nickewing.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nickewing/line-reader/issues"
+  },
   "directories": {
     "lib": "./lib"
   },
