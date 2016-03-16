@@ -11,6 +11,7 @@ var lineReader                    = require('../lib/line_reader'),
     multibyteFilePath             = __dirname + '/data/multibyte_file.txt',
     emptyFilePath                 = __dirname + '/data/empty_file.txt',
     oneLineFilePath               = __dirname + '/data/one_line_file.txt',
+    oneLineFileNoEndlinePath      = __dirname + '/data/one_line_file_no_endline.txt',
     threeLineFilePath             = __dirname + '/data/three_line_file.txt',
     testSeparatorFile             = ['foo', 'bar\n', 'baz\n'],
     testFile = [
@@ -35,7 +36,7 @@ function fakeFsRead(fd, buffer, offset, length, position, callback) {
     callback(new Error('fake error for testing'));
   }
   return realFsRead(fd, buffer, offset, length, position, callback);
-};
+}
 
 fs.read = fakeFsRead;
 
@@ -253,6 +254,17 @@ describe("lineReader", function() {
 
     it("should work with a file containing only one line", function(done) {
       lineReader.eachLine(oneLineFilePath, function(line, last) {
+        return true;
+      }, function(err) {
+        assert.ok(!err);
+        done();
+      });
+    });
+
+    it("should work with a file containing only one line and no endline character.", function(done) {
+      var count = 0; var isDone = false;
+      lineReader.eachLine(oneLineFileNoEndlinePath, function(line, last) {
+        assert.equal(last, true, 'last should be true');
         return true;
       }, function(err) {
         assert.ok(!err);

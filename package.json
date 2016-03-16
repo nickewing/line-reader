@@ -1,14 +1,27 @@
 {
-  "name":        "line-reader",
-  "version":     "0.3.0",
+  "name": "line-reader",
+  "version": "0.3.0",
   "description": "Asynchronous line-by-line file reader",
-  "url":         "https://github.com/nickewing/line-reader",
-  "keywords":    ["file", "line", "reader", "scanner"],
-  "author":      "Nick Ewing <nick@nickewing.net>",
-  "directories": {"lib" : "./lib"},
-  "main":        "./lib/line_reader",
+  "url": "https://github.com/nickewing/line-reader",
+  "keywords": [
+    "file",
+    "line",
+    "reader",
+    "scanner"
+  ],
+  "author": "Nick Ewing <nick@nickewing.net>",
+  "directories": {
+    "lib": "./lib"
+  },
+  "main": "./lib/line_reader",
+  "scripts": {
+    "test": "node_modules/.bin/mocha test/line_reader.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://nickewing@github.com/nickewing/line-reader.git"
+  },
+  "devDependencies": {
+    "mocha": "^2.4.5"
   }
 }
