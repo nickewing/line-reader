@@ -1,7 +1,8 @@
 Line Reader
 ===========
 
-Asynchronous line-by-line file reader.
+Asynchronous, buffered, line-by-line file/stream reader with support for
+user-defined line separators.
 
 Install
 -------
@@ -93,6 +94,21 @@ For example:
     lineReader.open('file.txt', {bufferSize: 1024}, function(err, reader) {
       ...
     }); 
+
+Streams
+-------
+
+Both `eachLine` and `open` support passing either a file name or a read stream:
+
+    // reading from stdin
+    lineReader.eachLine(process.stdin, function(line) {});
+
+    // reading with file position boundaries
+    var readStream = fs.createReadStream('test.log', { start: 0, end: 10000 });
+    lineReader.eachLine(readStream, function(line) {});
+
+Note however that if you're reading user input from stdin then the
+[readline module](https://nodejs.org/api/readline.html) is probably a better choice.
 
 Promises
 --------

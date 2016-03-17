@@ -27,22 +27,9 @@ var lineReader                    = require('../lib/line_reader'),
       'file'
     ];
 
-var readErrorFds = {};
-
-var realFsRead = fs.read;
-
-function fakeFsRead(fd, buffer, offset, length, position, callback) {
-  if (readErrorFds[fd]) {
-    callback(new Error('fake error for testing'));
-  }
-  return realFsRead(fd, buffer, offset, length, position, callback);
-}
-
-fs.read = fakeFsRead;
-
 describe("lineReader", function() {
   describe("eachLine", function() {
-    it("should read lines using the defalut separator", function(done) {
+    it("should read lines using the default separator", function(done) {
       var i = 0;
 
       lineReader.eachLine(testFilePath, function(line, last) {
@@ -286,16 +273,17 @@ describe("lineReader", function() {
     });
 
     it("should close the file if there is an error during eachLine", function(done) {
-      var reader;
       lineReader.eachLine(testFilePath, {bufferSize: 10}, function(line, last) {
       }, function(err) {
-        delete readErrorFds[reader.fd()];
-        assert.ok(err);
+        assert.equal('a test error', err.message);
         assert.ok(reader.isClosed());
         done();
       }).getReader(function(_reader) {
         reader = _reader;
-        readErrorFds[reader.fd()] = true;
+
+        reader.getReadStream().read = function() {
+          throw new Error('a test error');
+        };
       });
     });
   });
@@ -368,6 +356,29 @@ describe("lineReader", function() {
             done();
           });
         });
+      });
+    });
+
+    it("should support opened streams", function() {
+      var readStream = fs.createReadStream(testFilePath);
+
+      lineReader.open(readStream, function(err, reader) {
+        assert.ok(!err);
+        assert.ok(reader.hasNextLine());
+      
+        assert.ok(reader.hasNextLine(), 'Calling hasNextLine multiple times should be ok');
+      
+        reader.nextLine(function(err, line) {
+          assert.ok(!err);
+          assert.equal('Jabberwocky', line);
+        });
+      });
+    });
+
+    it("should handle error while opening read stream", function() {
+      lineReader.open('a file that does not exist', function(err, reader) {
+        assert.ok(err);
+        assert.ok(reader.isClosed());
       });
     });
 

@@ -1,7 +1,7 @@
 {
   "name": "line-reader",
-  "version": "0.3.1",
-  "description": "Asynchronous line-by-line file reader",
+  "version": "0.4.0",
+  "description": "Asynchronous, buffered, line-by-line file/stream reader",
   "url": "https://github.com/nickewing/line-reader",
   "keywords": [
     "file",
