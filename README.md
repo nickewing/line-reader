@@ -1,5 +1,7 @@
 Line Reader
 ===========
+[![npm version](https://img.shields.io/npm/v/line-reader.svg)](https://www.npmjs.com/package/line-reader)
+[![Downloads/month](https://img.shields.io/npm/dm/line-reader.svg)](https://www.npmjs.com/package/line-reader)
 
 Asynchronous, buffered, line-by-line file/stream reader with support for
 user-defined line separators.
