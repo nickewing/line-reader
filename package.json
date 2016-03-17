@@ -17,6 +17,9 @@
   "directories": {
     "lib": "./lib"
   },
+  "engines": {
+    "node": ">= 0.10.0"
+  },
   "main": "./lib/line_reader",
   "scripts": {
     "test": "node_modules/.bin/mocha test/line_reader.js"
