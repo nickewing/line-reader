@@ -25,7 +25,7 @@ var lineReader = require('line-reader');
 lineReader.eachLine('file.txt', function(line, last) {
   console.log(line);
 
-  if (/* done */) {
+  if (last) {
     return false; // stop reading
   }
 });
@@ -40,7 +40,7 @@ var lineReader = require('line-reader');
 lineReader.eachLine('file.txt', function(line, last, cb) {
   console.log(line);
 
-  if (/* done */) {
+  if (last) {
     cb(false); // stop reading
   } else {
     cb();
