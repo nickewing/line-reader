@@ -58,7 +58,7 @@ var lineReader = require('line-reader');
 // read all lines:
 lineReader.eachLine('file.txt', function(line) {
   console.log(line);
-}).then(function (err) {
+}, function (err) {
   if (err) throw err;
   console.log("I'm done!!");
 });
